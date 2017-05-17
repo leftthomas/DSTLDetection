@@ -5,6 +5,26 @@ import numpy as np
 import tifffile as tiff
 
 
+def M(image_id):
+    filename = os.path.join('/Users/left/workspace/data/sixteen_band', '{}_M.tif'.format(image_id))
+    img = tiff.imread(filename)
+    img = np.rollaxis(img, 0, 3)
+    return img
+
+
+def P(image_id):
+    filename = os.path.join('..', '../data', 'sixteen_band', '{}_P.tif'.format(image_id))
+    img = tiff.imread(filename)
+    return img
+
+
+def RGB(image_id):
+    filename = os.path.join('..', '../data', 'three_band', '{}.tif'.format(image_id))
+    img = tiff.imread(filename)
+    img = np.rollaxis(img, 0, 3)
+    return img
+
+
 def stretch_8bit(bands, lower_percent=2, higher_percent=98):
     out = np.zeros_like(bands)
     for i in range(3):
@@ -17,14 +37,6 @@ def stretch_8bit(bands, lower_percent=2, higher_percent=98):
         t[t > b] = b
         out[:, :, i] = t
     return out.astype(np.uint8)
-
-
-def M(image_id):
-    filename = os.path.join('/Users/left/workspace/data/sixteen_band', '{}_M.tif'.format(image_id))
-    img = tiff.imread(filename)
-    img = np.rollaxis(img, 0, 3)
-    return img
-
 
 image_id = '6120_2_2'
 m = M(image_id)

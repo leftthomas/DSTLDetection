@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import shapely.affinity
 import tifffile as tiff
+from shapely import wkt
 
 csv.field_size_limit(sys.maxsize)
 
@@ -14,20 +15,20 @@ POLY_TYPE = '1'
 
 # Load grid size
 x_max = y_min = None
-for _im_id, _x, _y in csv.reader(open('../data/grid_sizes.csv')):
+for _im_id, _x, _y in csv.reader(open('../../data/grid_sizes.csv')):
     if _im_id == IM_ID:
         x_max, y_min = float(_x), float(_y)
         break
 
 # Load train poly with shapely
 train_polygons = None
-for _im_id, _poly_type, _poly in csv.reader(open('../data/train_wkt_v4.csv')):
+for _im_id, _poly_type, _poly in csv.reader(open('../../data/train_wkt_v4.csv')):
     if _im_id == IM_ID and _poly_type == POLY_TYPE:
-        train_polygons = shapely.wkt.loads(_poly)
+        train_polygons = wkt.loads(_poly)
         break
 
 # Read image with tiff
-im_rgb = tiff.imread('../data/three_band/{}.tif'.format(IM_ID)).transpose([1, 2, 0])
+im_rgb = tiff.imread('../../data/three_band/{}.tif'.format(IM_ID)).transpose([1, 2, 0])
 im_size = im_rgb.shape[:2]
 
 
@@ -61,5 +62,5 @@ def mask_for_polygons(polygons):
 train_mask = mask_for_polygons(train_polygons_scaled)
 
 print(train_mask.shape)
-im_rgb = tiff.imread('../data/three_band/{}.tif'.format(IM_ID)).transpose([1, 2, 0])
+im_rgb = tiff.imread('../../data/three_band/{}.tif'.format(IM_ID)).transpose([1, 2, 0])
 print(im_rgb.shape)

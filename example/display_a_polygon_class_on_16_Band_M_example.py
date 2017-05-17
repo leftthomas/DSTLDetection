@@ -2,14 +2,14 @@
 This Scritp Show Traning Polygons on Satalite İmages for each Class
 """
 
+import os
+
 # Import Libraries
 import cv2
-import os
-import tifffile
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import tifffile
 from shapely import wkt, affinity
 
 """
@@ -52,10 +52,10 @@ def adjust_contrast(x):
 
 
 def truth_polys(image_id, class_id, W, H):
-    x = pd.read_csv('../data/train_wkt_v4.csv')
+    x = pd.read_csv('../../data/train_wkt_v4.csv')
     rows = x.loc[(x.ImageId == image_id) & (x.ClassType == class_id), 'MultipolygonWKT']
     mp = wkt.loads(rows.values[0])
-    grid_sizes = pd.read_csv('../data/grid_sizes.csv', names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
+    grid_sizes = pd.read_csv('../../data/grid_sizes.csv', names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
     xmax, ymin = grid_sizes[grid_sizes.ImageId == ImageID].iloc[0, 1:].astype(float)
     W_ = W * (W / (W + 1.))
     H_ = H * (H / (H + 1.))
@@ -68,12 +68,12 @@ def truth_polys(image_id, class_id, W, H):
 
 
 # Read threeband image
-rgbfile = os.path.join('..', 'data', 'three_band', '{}.tif'.format(ImageID))
+rgbfile = os.path.join('/Users/left/workspace/data/three_band', '{}.tif'.format(ImageID))
 rgb = tifffile.imread(rgbfile)
 rgb = np.rollaxis(rgb, 0, 3)
 
 # Read 16band m image
-mfile = os.path.join('..', 'data', 'sixteen_band', '{}_M.tif'.format(ImageID))
+mfile = os.path.join('/Users/left/workspace/data/sixteen_band', '{}_M.tif'.format(ImageID))
 img_m = tifffile.imread(mfile)
 img_m = np.rollaxis(img_m, 0, 3)
 img_m = cv2.resize(img_m, tuple(reversed(rgb.shape[:2])))
