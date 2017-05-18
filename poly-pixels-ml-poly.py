@@ -13,6 +13,8 @@ from matplotlib import pyplot as plt
 from shapely import wkt
 from shapely.geometry import MultiPolygon, Polygon
 
+from utils import mask_for_polygons, get_scalers
+
 csv.field_size_limit(sys.maxsize)
 
 # We'll work on buildings (class 1) from image 6120_2_2. Fist load grid sizes and polygons.
@@ -37,36 +39,12 @@ for _im_id, _poly_type, _poly in csv.reader(open('../data/train_wkt_v4.csv')):
 im_rgb = tiff.imread('../data/three_band/{}.tif'.format(IM_ID)).transpose([1, 2, 0])
 im_size = im_rgb.shape[:2]
 
-
-# Scale polygons to match image:
-def get_scalers():
-    h, w = im_size  # they are flipped so that mask_for_polygons works correctly
-    w_ = w * (w / (w + 1))
-    h_ = h * (h / (h + 1))
-    return w_ / x_max, h_ / y_min
-
-
-x_scaler, y_scaler = get_scalers()
+x_scaler, y_scaler = get_scalers(im_size, x_max, y_min)
 
 train_polygons_scaled = shapely.affinity.scale(
     train_polygons, xfact=x_scaler, yfact=y_scaler, origin=(0, 0, 0))
 
-
-# Create a mask from polygons:
-def mask_for_polygons(polygons):
-    img_mask = np.zeros(im_size, np.uint8)
-    if not polygons:
-        return img_mask
-    int_coords = lambda x: np.array(x).round().astype(np.int32)
-    exteriors = [int_coords(poly.exterior.coords) for poly in polygons]
-    interiors = [int_coords(pi.coords) for poly in polygons
-                 for pi in poly.interiors]
-    cv2.fillPoly(img_mask, exteriors, 1)
-    cv2.fillPoly(img_mask, interiors, 0)
-    return img_mask
-
-
-train_mask = mask_for_polygons(train_polygons_scaled)
+train_mask = mask_for_polygons(train_polygons_scaled, im_size)
 
 
 # A helper for nicer display
@@ -173,7 +151,7 @@ def mask_to_polygons(mask, epsilon=10., min_area=10.):
 
 # Turn our prediction to polygons, and then turn back into a mask to check what it looks like:
 pred_polygons = mask_to_polygons(pred_binary_mask)
-pred_poly_mask = mask_for_polygons(pred_polygons)
+pred_poly_mask = mask_for_polygons(pred_polygons, im_size)
 show_mask(pred_poly_mask[2900:3200, 2000:2300])
 
 # Now to create a submission we just scale back to original coordinates

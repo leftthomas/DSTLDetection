@@ -58,7 +58,8 @@ def stretch_n(bands, lower_percent=5, higher_percent=95):
     return out
 
 
-def mask_for_polygons(polygons):
+# Create a mask from polygons:
+def mask_for_polygons(polygons, im_size):
     img_mask = np.zeros(im_size, np.uint8)
     if not polygons:
         return img_mask
@@ -71,7 +72,8 @@ def mask_for_polygons(polygons):
     return img_mask
 
 
-def get_scalers():
+# Scale polygons to match image:
+def get_scalers(im_size, x_max, y_min):
     # they are flipped so that mask_for_polygons works correctly
     h, w = im_size
     w_ = w * (w / (w + 1))

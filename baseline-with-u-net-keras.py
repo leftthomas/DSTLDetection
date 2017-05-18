@@ -18,6 +18,7 @@ from shapely.geometry import MultiPolygon, Polygon
 from shapely.wkt import loads as wkt_loads
 from sklearn.metrics import jaccard_similarity_score
 
+from utils import get_scalers, mask_for_polygons
 from utils import stretch_n
 
 N_Cls = 10
@@ -264,19 +265,6 @@ def calc_jacc(model):
     return score, trs
 
 
-def mask_for_polygons(polygons, im_size):
-    img_mask = np.zeros(im_size, np.uint8)
-    if not polygons:
-        return img_mask
-    int_coords = lambda x: np.array(x).round().astype(np.int32)
-    exteriors = [int_coords(poly.exterior.coords) for poly in polygons]
-    interiors = [int_coords(pi.coords) for poly in polygons
-                 for pi in poly.interiors]
-    cv2.fillPoly(img_mask, exteriors, 1)
-    cv2.fillPoly(img_mask, interiors, 0)
-    return img_mask
-
-
 def mask_to_polygons(mask, epsilon=5, min_area=1.):
     # first, find contours with cv2: it's much faster than shapely
     image, contours, hierarchy = cv2.findContours(
@@ -315,14 +303,6 @@ def mask_to_polygons(mask, epsilon=5, min_area=1.):
         if all_polygons.type == 'Polygon':
             all_polygons = MultiPolygon([all_polygons])
     return all_polygons
-
-
-def get_scalers(im_size, x_max, y_min):
-    h, w = im_size  # they are flipped so that mask_for_polygons works correctly
-    h, w = float(h), float(w)
-    w_ = 1.0 * w * (w / (w + 1))
-    h_ = 1.0 * h * (h / (h + 1))
-    return w_ / x_max, h_ / y_min
 
 
 def train_net():
