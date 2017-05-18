@@ -148,10 +148,10 @@ def display_polys(img, image_id, Class):
     vertices = lambda x: np.array(x).round().astype(np.int32)
     for poly_id, poly in enumerate(polys):
         xys = vertices(poly.exterior.coords)
-        cv2.polylines(img, [xys], True, (255, 0, 0), 3)
+        cv2.polylines(img, [xys], True, (255, 0, 0), 7)
         for pi in poly.interiors:
             ixys = vertices(pi.coords)
-            cv2.polylines(img, [ixys], True, (255, 0, 0), 3)
+            cv2.polylines(img, [ixys], True, (255, 0, 0), 7)
     # Plot
     plt.imshow(img)
     plt.show()

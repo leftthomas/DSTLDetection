@@ -3,7 +3,7 @@ from mask_utils import *
 
 
 # 测试A、M、P、RGB四个波段图像shape
-imageId = '6120_2_2'
+imageId = '6100_2_2'
 a = A(imageId)
 m = M(imageId)
 p = P(imageId)
@@ -26,5 +26,5 @@ display_img(image)
 display_img(stretch_n(image))
 # 测试polys的绘制
 image = cv2.resize(stretch_n(image), tuple(reversed(rgb.shape[:2])))
-Class = 1
+Class = 5
 display_polys(image, imageId, Class)

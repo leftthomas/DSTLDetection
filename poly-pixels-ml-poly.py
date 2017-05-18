@@ -14,8 +14,8 @@ from mask_utils import mask_for_polygons, get_scalers
 csv.field_size_limit(sys.maxsize)
 
 # We'll work on buildings (class 1) from image 6120_2_2. Fist load grid sizes and polygons.
-IM_ID = '6120_2_2'
-POLY_TYPE = '1'  # buildings
+IM_ID = '6070_2_3'
+POLY_TYPE = '6'  # Crops
 
 # Load grid size
 x_max = y_min = None

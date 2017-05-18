@@ -88,3 +88,19 @@ def display_img(img):
         ax7.imshow(img[:, :, 7])
         plt.show()
 
+
+# 从M段提取出RGB并进行线性拉伸，保存训练图片(主要是方便观察图片本来长什么样)
+def generate_image_from_m():
+    img_names = os.listdir('../data/train_geojson_v3')
+    # 记得要把Mac下的.DS_Store隐藏文件去掉
+    img_names.remove('.DS_Store')
+    for img_name in img_names:
+        m = M(img_name)
+        image = np.zeros((m.shape[0], m.shape[1], 3))
+        image[:, :, 0] = m[:, :, 4]  # red
+        image[:, :, 1] = m[:, :, 2]  # green
+        image[:, :, 2] = m[:, :, 1]  # blue
+        image = stretch_n(image)
+        plt.imsave('images/' + img_name + '.png', image)
+
+# generate_image_from_m()
