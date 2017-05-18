@@ -82,3 +82,7 @@ model.fit(xtrain, ytrain, batch_size=32, epochs=10)
 
 model.evaluate(xtrain, ytrain, batch_size=32)
 model.evaluate(xtest, ytest, batch_size=32)
+
+
+# pipeline = make_pipeline(StandardScaler(), SGDClassifier(loss='log'))
+# pipeline.fit(xtrain, ytrain)
