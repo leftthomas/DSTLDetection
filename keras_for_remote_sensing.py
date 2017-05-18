@@ -3,10 +3,10 @@ import sys
 
 import numpy as np
 import shapely.affinity
-import tifffile as tiff
 from shapely import wkt
 
-from utils import mask_for_polygons, get_scalers
+from image_utils import RGB
+from mask_utils import mask_for_polygons, get_scalers
 
 csv.field_size_limit(sys.maxsize)
 
@@ -27,8 +27,8 @@ for _im_id, _poly_type, _poly in csv.reader(open('../data/train_wkt_v4.csv')):
         train_polygons[_poly_type] = wkt.loads(_poly)
         break
 
-# Read image with tiff
-im_rgb = tiff.imread('../data/three_band/{}.tif'.format(IM_ID)).transpose([1, 2, 0])
+# Read image
+im_rgb = RGB(IM_ID)
 im_size = im_rgb.shape[:2]
 
 

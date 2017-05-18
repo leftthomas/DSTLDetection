@@ -10,7 +10,7 @@ import tifffile as tiff
 from matplotlib import pyplot as plt
 from shapely import wkt
 
-from utils import mask_for_polygons, get_scalers, mask_to_polygons
+from mask_utils import mask_for_polygons, get_scalers, mask_to_polygons
 
 csv.field_size_limit(sys.maxsize)
 
