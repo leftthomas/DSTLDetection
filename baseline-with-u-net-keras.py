@@ -19,9 +19,6 @@ SB = pd.read_csv(os.path.join('../data', 'sample_submission.csv'))
 ISZ = 160
 
 
-# smooth = 1e-12
-
-
 def stick_all_train():
     print("let's stick all imgs together")
     s = 835
