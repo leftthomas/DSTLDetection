@@ -12,6 +12,8 @@ import pandas as pd
 import tifffile
 from shapely import wkt, affinity
 
+import utils
+
 """
 Classes 
         'Buildings'        :1,
@@ -33,21 +35,9 @@ ImageID = '6120_2_2'  # '6120_2_2', '6100_1_3', '6140_3_1','6110_3_1','6100_2_3'
 
 # ---------------------------------------
 
-# Define Functions
-def stretch2(band, lower_percent=2, higher_percent=98):
-    a = 0  # np.min(band)
-    b = 255  # np.max(band)
-    c = np.percentile(band, lower_percent)
-    d = np.percentile(band, higher_percent)
-    out = a + (band - c) * (b - a) / (d - c)
-    out[out < a] = a
-    out[out > b] = b
-    return out
-
-
 def adjust_contrast(x):
     for i in range(3):
-        x[:, :, i] = stretch2(x[:, :, i])
+        x[:, :, i] = utils.stretch_n(x[:, :, i])
     return x.astype(np.uint8)
 
 

@@ -18,6 +18,8 @@ from shapely.geometry import MultiPolygon, Polygon
 from shapely.wkt import loads as wkt_loads
 from sklearn.metrics import jaccard_similarity_score
 
+from utils import stretch_n
+
 N_Cls = 10
 inDir = '/Users/left/workspace/data'
 DF = pd.read_csv(inDir + '/train_wkt_v4.csv')
@@ -97,22 +99,6 @@ def M(image_id):
     img = tiff.imread(filename)
     img = np.rollaxis(img, 0, 3)
     return img
-
-
-def stretch_n(bands, lower_percent=5, higher_percent=95):
-    out = np.zeros_like(bands).astype(np.float32)
-    n = bands.shape[2]
-    for i in range(n):
-        a = 0  # np.min(band)
-        b = 1  # np.max(band)
-        c = np.percentile(bands[:, :, i], lower_percent)
-        d = np.percentile(bands[:, :, i], higher_percent)
-        t = a + (bands[:, :, i] - c) * (b - a) / (d - c)
-        t[t < a] = a
-        t[t > b] = b
-        out[:, :, i] = t
-
-    return out.astype(np.float32)
 
 
 def jaccard_coef(y_true, y_pred):

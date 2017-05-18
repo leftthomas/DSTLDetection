@@ -1,5 +1,6 @@
 import os
 
+import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import tifffile as tiff
@@ -37,12 +38,15 @@ def RGB(image_id):
     return img
 
 
-# 因为遥感图像数据位数是16位(uint16),需要使用2%的线性拉伸,不然显示起来不正常
-def stretch_8bit(bands, lower_percent=2, higher_percent=98):
-    out = np.zeros_like(bands)
-    for i in range(3):
-        a = 0
-        b = 255
+# 因为遥感图像数据位数是16位(uint16),需要使用5%的线性拉伸,不然显示起来不正常
+def stretch_n(bands, lower_percent=5, higher_percent=95):
+    # print(bands.dtype)
+    # 一定要使用float32类型，原因有两个：1、Keras不支持float64运算；2、float32运算要好于uint16
+    out = np.zeros_like(bands).astype(np.float32)
+    # print(out.dtype)
+    for i in range(bands.shape[2]):
+        a = 0  # np.min(band)
+        b = 1  # np.max(band)
         # 计算百分位数（从小到大排序之后第 percent% 的数）
         c = np.percentile(bands[:, :, i], lower_percent)
         d = np.percentile(bands[:, :, i], higher_percent)
@@ -50,8 +54,29 @@ def stretch_8bit(bands, lower_percent=2, higher_percent=98):
         t[t < a] = a
         t[t > b] = b
         out[:, :, i] = t
-    # 因为A是14 bit,M、P是11 bit,所以需要转换下
-    return out.astype(np.uint8)
+    # print(out.dtype)
+    return out
+
+
+def mask_for_polygons(polygons):
+    img_mask = np.zeros(im_size, np.uint8)
+    if not polygons:
+        return img_mask
+    int_coords = lambda x: np.array(x).round().astype(np.int32)
+    exteriors = [int_coords(poly.exterior.coords) for poly in polygons]
+    interiors = [int_coords(pi.coords) for poly in polygons
+                 for pi in poly.interiors]
+    cv2.fillPoly(img_mask, exteriors, 1)
+    cv2.fillPoly(img_mask, interiors, 0)
+    return img_mask
+
+
+def get_scalers():
+    # they are flipped so that mask_for_polygons works correctly
+    h, w = im_size
+    w_ = w * (w / (w + 1))
+    h_ = h * (h / (h + 1))
+    return w_ / x_max, h_ / y_min
 
 
 def display_img(img):
@@ -107,25 +132,4 @@ image[:, :, 1] = m[:, :, 2]  # green
 image[:, :, 2] = m[:, :, 1]  # blue
 # 对比原图与做过对比度加强的图像，原图其实与RGB段的图是一样的
 display_img(image)
-display_img(stretch_8bit(image))
-
-
-# def mask_for_polygons(polygons):
-#     img_mask = np.zeros(im_size, np.uint8)
-#     if not polygons:
-#         return img_mask
-#     int_coords = lambda x: np.array(x).round().astype(np.int32)
-#     exteriors = [int_coords(poly.exterior.coords) for poly in polygons]
-#     interiors = [int_coords(pi.coords) for poly in polygons
-#                  for pi in poly.interiors]
-#     cv2.fillPoly(img_mask, exteriors, 1)
-#     cv2.fillPoly(img_mask, interiors, 0)
-#     return img_mask
-#
-#
-# def get_scalers():
-#     # they are flipped so that mask_for_polygons works correctly
-#     h, w = im_size
-#     w_ = w * (w / (w + 1))
-#     h_ = h * (h / (h + 1))
-#     return w_ / x_max, h_ / y_min
+display_img(stretch_n(image))
