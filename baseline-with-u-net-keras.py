@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import shapely.affinity
 import shapely.wkt
-import tifffile as tiff
 from keras import backend as K
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Input, Conv2D, MaxPool2D, UpSampling2D, concatenate
@@ -19,7 +18,7 @@ from shapely.wkt import loads as wkt_loads
 from sklearn.metrics import jaccard_similarity_score
 
 from utils import get_scalers, mask_for_polygons
-from utils import stretch_n
+from utils import stretch_n, M
 
 N_Cls = 10
 inDir = '/Users/left/workspace/data'
@@ -93,13 +92,6 @@ def generate_mask_for_image_and_class(raster_size, imageId, class_type, grid_siz
     contours = _get_and_convert_contours(polygon_list, raster_size, xymax)
     mask = _plot_mask_from_contours(raster_size, contours, 1)
     return mask
-
-
-def M(image_id):
-    filename = os.path.join(inDir, 'sixteen_band', '{}_M.tif'.format(image_id))
-    img = tiff.imread(filename)
-    img = np.rollaxis(img, 0, 3)
-    return img
 
 
 def jaccard_coef(y_true, y_pred):

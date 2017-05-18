@@ -58,7 +58,7 @@ def stretch_n(bands, lower_percent=5, higher_percent=95):
     return out
 
 
-# Create a mask from polygons:
+# Create a mask from polygons
 def mask_for_polygons(polygons, im_size):
     img_mask = np.zeros(im_size, np.uint8)
     if not polygons:
@@ -72,7 +72,7 @@ def mask_for_polygons(polygons, im_size):
     return img_mask
 
 
-# Scale polygons to match image:
+# Scale polygons to match image
 def get_scalers(im_size, x_max, y_min):
     # they are flipped so that mask_for_polygons works correctly
     h, w = im_size
@@ -134,4 +134,5 @@ image[:, :, 1] = m[:, :, 2]  # green
 image[:, :, 2] = m[:, :, 1]  # blue
 # 对比原图与做过对比度加强的图像，原图其实与RGB段的图是一样的
 display_img(image)
+# 测试线性拉伸
 display_img(stretch_n(image))
