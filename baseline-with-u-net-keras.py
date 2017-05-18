@@ -100,7 +100,7 @@ def M(image_id):
 
 
 def stretch_n(bands, lower_percent=5, higher_percent=95):
-    out = np.zeros_like(bands)
+    out = np.zeros_like(bands).astype(np.float32)
     n = bands.shape[2]
     for i in range(n):
         a = 0  # np.min(band)
@@ -128,7 +128,7 @@ def jaccard_coef_int(y_true, y_pred):
     y_pred_pos = K.round(K.clip(y_pred, 0, 1))
 
     intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
-    sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
+    sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
     jac = (intersection + smooth) / (sum_ - intersection + smooth)
     return K.mean(jac)
 
