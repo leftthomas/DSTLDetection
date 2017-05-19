@@ -76,6 +76,14 @@ def generate_mask_for_image_and_class(raster_size, image_id, class_type):
     return mask
 
 
+# 根据load_all_geojson或load_all_wkt得到的dict polygons读取所有masks
+def load_all_masks(polygons, im_size, x_scale, y_scale):
+    masks = list()
+    for key in polygons.keys():
+        masks.append(polygons_to_mask(polygons[key], im_size, False, x_scale, y_scale))
+    return masks
+
+
 def display_polygons(polygons, img, x_scale, y_scale):
     polygons = affinity.scale(polygons, xfact=x_scale, yfact=y_scale, origin=(0, 0, 0))
     vertices = lambda x: np.array(x).round().astype(np.int32)

@@ -1,57 +1,43 @@
-import csv
-
 import numpy as np
-import shapely.affinity
 from keras.layers import Activation
 from keras.layers import Flatten, Dense, Conv2D, MaxPool2D
 from keras.layers.normalization import BatchNormalization
 from keras.models import Sequential
-from shapely import wkt
 from sklearn.model_selection import train_test_split
 
-from file_utils import get_xmax_ymin
+from file_utils import get_xmax_ymin, load_all_geojson
 from image_utils import M
-from mask_utils import polygons_to_mask, get_scales
+from mask_utils import get_scales, load_all_masks
 
 IM_ID = '6100_2_2'
-POLY_TYPE = '5'  # Trees
-
-
-# Load train poly with shapely
-train_polygons = dict()
-for _im_id, _poly_type, _poly in csv.reader(open('../data/train_wkt_v4.csv')):
-    if _im_id == IM_ID:
-        train_polygons[_poly_type] = wkt.loads(_poly)
-        break
-
 # Read image
 im_rgb = M(IM_ID)
 im_size = im_rgb.shape[:2]
+# print(im_size)
 x_max, y_min = get_xmax_ymin(IM_ID)
+x_scale, y_scale = get_scales(im_size, x_max, y_min)
+# 载入所有polygons
+train_polygons = load_all_geojson(IM_ID)
+masks = np.dstack(load_all_masks(train_polygons, im_size, x_scale, y_scale))
+# print(len(masks))
 
-mask_map = list()
-for key in train_polygons.keys():
-    x_scaler, y_scaler = get_scales(im_size, x_max, y_min)
-    train_polygons_scaled = shapely.affinity.scale(train_polygons[key], xfact=x_scaler, yfact=y_scaler,
-                                                   origin=(0, 0, 0))
-    mask_map.append(polygons_to_mask(train_polygons_scaled, im_size))
-
-mask = np.dstack(mask_map)
-
-nrow, ncol = im_size
-x = np.arange(0, nrow, 16)
-y = np.arange(0, ncol, 16)
-
+# 构建训练集，本质是在图上取16*16的patchs
+n_row, n_col = im_size
+x = np.arange(0, n_row, 16)
+y = np.arange(0, n_col, 16)
+# print(x,y)
 patch_list = list()
 lbl_list = list()
-for xstart, xend in zip(x[:-1], x[1:]):
-    for ystart, yend in zip(y[:-1], y[1:]):
-        patch_list.append(im_rgb[xstart:xend, ystart:yend, :])
-        lbl_list.append(mask[xstart:xend, ystart:yend].mean())
+for x_start, x_end in zip(x[:-1], x[1:]):
+    for y_start, y_end in zip(y[:-1], y[1:]):
+        patch_list.append(im_rgb[x_start:x_end, y_start:y_end, :])
+        # 把此patch的mask的mean值作为对应的分类结果
+        lbl_list.append(masks[x_start:x_end, y_start:y_end].mean())
 patches = np.array(patch_list)
 lbls = np.array(lbl_list)
+# print(patches.shape,lbls.shape)
 
-xtrain, xtest, ytrain, ytest = train_test_split(patches, lbls, train_size=0.8, test_size=0.2)
+x_train, x_test, y_train, y_test = train_test_split(patches, lbls, train_size=0.8, test_size=0.2)
 
 model = Sequential()
 model.add(Conv2D(64, (1, 1), input_shape=(16, 16, 8), padding="same"))
@@ -70,11 +56,8 @@ model.add(Dense(1))
 
 model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
-model.fit(xtrain, ytrain, batch_size=32, epochs=10)
-
-model.evaluate(xtrain, ytrain, batch_size=32)
-model.evaluate(xtest, ytest, batch_size=32)
+model.fit(x_train, y_train, batch_size=32, epochs=10)
 
 
 # pipeline = make_pipeline(StandardScaler(), SGDClassifier(loss='log'))
-# pipeline.fit(xtrain, ytrain)
+# pipeline.fit(x_train, y_train)

@@ -29,6 +29,14 @@ def load_geojson_to_polygons(img_id, class_type):
     return MultiPolygon(polygon_list)
 
 
+# 读取指定的img所有的class的geojson文件的polygons
+def load_all_geojson(img_id):
+    polygons = dict()
+    for class_type in classType_to_filename.keys():
+        polygons[class_type] = load_geojson_to_polygons(img_id, class_type)
+    return polygons
+
+
 # 读取指定的img对应的class的csv文件的polygons,注意这里的class与geojson文件的class不同
 def load_wkt_to_polygons(img_id, class_type):
     df = pd.read_csv('../data/train_wkt_v4.csv')
@@ -39,6 +47,15 @@ def load_wkt_to_polygons(img_id, class_type):
         polygon_list = wkt.loads(polygons.values[0])
     # print(polygon_list)
     return polygon_list
+
+
+# 读取指定的img所有的class的csv文件的polygons
+def load_all_wkt(img_id):
+    polygons = dict()
+    # 因为wkt共有10类
+    for class_type in range(1, 11):
+        polygons[class_type] = load_wkt_to_polygons(img_id, class_type)
+    return polygons
 
 
 # 从grid_sizes.csv中读取指定图像的 Xmax 和 Ymin
