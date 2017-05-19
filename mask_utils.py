@@ -95,3 +95,21 @@ def display_polygons(polygons, img, x_scale, y_scale):
             cv2.polylines(img, [i_xys], True, (0, 255, 0), 2)
     plt.imshow(img)
     plt.show()
+
+
+# 显示所有mask
+def display_all_mask(masks):
+    fig = plt.figure()
+    ax = fig.add_subplot(3, 2, 1)
+    ax.imshow(masks[0])
+    ax1 = fig.add_subplot(3, 2, 2)
+    ax1.imshow(masks[1])
+    ax2 = fig.add_subplot(3, 2, 3)
+    ax2.imshow(masks[2])
+    ax3 = fig.add_subplot(3, 2, 4)
+    ax3.imshow(masks[3])
+    ax4 = fig.add_subplot(3, 2, 5)
+    ax4.imshow(masks[4])
+    ax5 = fig.add_subplot(3, 2, 6)
+    ax5.imshow(masks[5])
+    plt.show()

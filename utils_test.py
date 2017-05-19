@@ -40,3 +40,6 @@ mask = polygons_to_mask(polygons_geojson, (image.shape[0], image.shape[1]), Fals
 display_polygons(polygons_geojson, image, x_scale, y_scale)
 # 测试mask的绘制
 display_img(mask)
+# 显示所有mask
+masks = load_all_masks(load_all_geojson(imageId), (image.shape[0], image.shape[1]), x_scale, y_scale)
+display_all_mask(masks)
