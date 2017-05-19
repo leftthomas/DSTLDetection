@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from shapely import affinity
 from shapely.geometry import MultiPolygon, Polygon
 
-from file_utils import get_xmax_ymin, load_geojson_to_polygons, get_scales
+from file_utils import get_xmax_ymin, get_scales, load_wkt_to_polygons
 
 
 # 将polygons转化成mask,注意,已经转化过的polygons不需要再做转化了
@@ -71,7 +71,7 @@ def mask_to_polygons(mask, epsilon=5, min_area=1):
 def generate_mask_for_image_and_class(raster_size, image_id, class_type):
     x_max, y_min = get_xmax_ymin(image_id)
     xf, yf = get_scales(raster_size, x_max, y_min)
-    polygon_list = load_geojson_to_polygons(image_id, class_type)
+    polygon_list = load_wkt_to_polygons(image_id, class_type)
     mask = polygons_to_mask(polygon_list, raster_size, False, xf, yf)
     return mask
 
