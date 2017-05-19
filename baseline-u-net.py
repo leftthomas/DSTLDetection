@@ -4,12 +4,10 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import shapely.affinity
-import shapely.wkt
 from keras.callbacks import ModelCheckpoint
 
 from image_utils import stretch_n, M
-from mask_utils import get_scales, polygons_to_mask, mask_to_polygons, generate_mask_for_image_and_class
+from mask_utils import polygons_to_mask, mask_to_polygons, generate_mask_for_image_and_class
 from network import get_unet, calc_jacc
 
 class_number = 10
@@ -146,30 +144,6 @@ def predict_test(model, trs):
         if i % 100 == 0: print(i, id)
 
 
-def make_submit():
-    print("make submission file")
-    df = pd.read_csv(os.path.join('../data', 'sample_submission.csv'))
-    print(df.head())
-    for idx, row in df.iterrows():
-        id = row[0]
-        kls = row[1] - 1
-
-        msk = np.load('msk/10_%s.npy' % id)[kls]
-        pred_polygons = mask_to_polygons(msk)
-        x_max = GS.loc[GS['ImageId'] == id, 'Xmax'].as_matrix()[0]
-        y_min = GS.loc[GS['ImageId'] == id, 'Ymin'].as_matrix()[0]
-
-        x_scaler, y_scaler = get_scales(msk.shape, x_max, y_min)
-
-        scaled_pred_polygons = shapely.affinity.scale(pred_polygons, xfact=1.0 / x_scaler, yfact=1.0 / y_scaler,
-                                                      origin=(0, 0, 0))
-
-        df.iloc[idx, 2] = shapely.wkt.dumps(scaled_pred_polygons)
-        if idx % 100 == 0: print(idx)
-    print(df.head())
-    df.to_csv('subm/1.csv', index=False)
-
-
 def check_predict(id='6120_2_3'):
     model = get_unet()
     model.load_weights('weights/unet_10_jk0.7878')
@@ -191,13 +165,10 @@ def check_predict(id='6120_2_3'):
     plt.show()
 
 
-if __name__ == '__main__':
-    stick_all_train()
-    make_val()
-    model = train_net()
-    score, trs = calc_jacc(model)
-    predict_test(model, trs)
-    make_submit()
-
-    # bonus
-    check_predict()
+stick_all_train()
+make_val()
+model = train_net()
+score, trs = calc_jacc(model)
+predict_test(model, trs)
+# bonus
+check_predict()
