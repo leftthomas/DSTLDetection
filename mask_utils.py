@@ -6,16 +6,7 @@ from matplotlib import pyplot as plt
 from shapely import affinity
 from shapely.geometry import MultiPolygon, Polygon
 
-from file_utils import get_xmax_ymin, load_wkt_to_polygons
-
-
-# Scale polygons to match image
-def get_scalers(im_size, x_max, y_min):
-    # they are flipped so that mask_for_polygons works correctly
-    h, w = im_size
-    w_ = w * (w / (w + 1))
-    h_ = h * (h / (h + 1))
-    return w_ / x_max, h_ / y_min
+from file_utils import get_xmax_ymin, load_wkt_to_polygons, get_scales
 
 
 # Create a mask from polygons
@@ -123,10 +114,12 @@ def generate_mask_for_image_and_class(raster_size, imageId, class_type):
 
 def display_polys(img, image_id, Class):
     polys = load_wkt_to_polygons(image_id, Class)
-    H = len(img)
-    W = len(img[0])
+    H = img.shape[0]
+    W = img.shape[1]
+    print('h:', H)
+    print('w:', W)
     x_max, y_min = get_xmax_ymin(image_id)
-    x_scale, y_scale = get_scalers((H, W), x_max, y_min)
+    x_scale, y_scale = get_scales((H, W), x_max, y_min)
     polys = affinity.scale(polys, xfact=x_scale, yfact=y_scale, origin=(0, 0, 0))
     vertices = lambda x: np.array(x).round().astype(np.int32)
     for poly_id, poly in enumerate(polys):

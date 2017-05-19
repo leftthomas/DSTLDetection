@@ -51,3 +51,11 @@ def get_xmax_ymin(image_id):
     gs = pd.read_csv('../data/grid_sizes.csv', names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
     xmax, ymin = gs[gs.ImageId == image_id].iloc[0, 1:].astype(float)
     return xmax, ymin
+
+
+# 得到polygons地理坐标到像素坐标点映射的缩放因子
+def get_scales(im_size, x_max, y_min):
+    h, w = im_size
+    w_ = w * (w / (w + 1))
+    h_ = h * (h / (h + 1))
+    return w_ / x_max, h_ / y_min

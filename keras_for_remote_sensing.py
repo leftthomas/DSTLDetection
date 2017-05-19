@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split
 
 from file_utils import get_xmax_ymin
 from image_utils import M
-from mask_utils import mask_for_polygons, get_scalers
+from mask_utils import mask_for_polygons, get_scales
 
 IM_ID = '6100_2_2'
 POLY_TYPE = '5'  # Trees
@@ -31,7 +31,7 @@ x_max, y_min = get_xmax_ymin(IM_ID)
 
 mask_map = list()
 for key in train_polygons.keys():
-    x_scaler, y_scaler = get_scalers(im_size, x_max, y_min)
+    x_scaler, y_scaler = get_scales(im_size, x_max, y_min)
     train_polygons_scaled = shapely.affinity.scale(train_polygons[key], xfact=x_scaler, yfact=y_scaler,
                                                    origin=(0, 0, 0))
     mask_map.append(mask_for_polygons(train_polygons_scaled, im_size))

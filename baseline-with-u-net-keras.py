@@ -9,7 +9,7 @@ import shapely.wkt
 from keras.callbacks import ModelCheckpoint
 
 from image_utils import stretch_n, M
-from mask_utils import get_scalers, mask_for_polygons, mask_to_polygons, generate_mask_for_image_and_class
+from mask_utils import get_scales, mask_for_polygons, mask_to_polygons, generate_mask_for_image_and_class
 from network import get_unet, calc_jacc
 
 N_Cls = 10
@@ -159,7 +159,7 @@ def make_submit():
         x_max = GS.loc[GS['ImageId'] == id, 'Xmax'].as_matrix()[0]
         y_min = GS.loc[GS['ImageId'] == id, 'Ymin'].as_matrix()[0]
 
-        x_scaler, y_scaler = get_scalers(msk.shape, x_max, y_min)
+        x_scaler, y_scaler = get_scales(msk.shape, x_max, y_min)
 
         scaled_pred_polygons = shapely.affinity.scale(pred_polygons, xfact=1.0 / x_scaler, yfact=1.0 / y_scaler,
                                                       origin=(0, 0, 0))

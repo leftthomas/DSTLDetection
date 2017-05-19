@@ -24,7 +24,9 @@ image[:, :, 2] = m[:, :, 1]  # blue
 display_img(image)
 # 测试线性拉伸
 display_img(stretch_n(image))
-# 测试polys的绘制
+# 测试polys的绘制,注意，cv2的长宽表示与一般图像刚好相反，是W、H而不是H、W
 image = cv2.resize(stretch_n(image), tuple(reversed(rgb.shape[:2])))
 Class = 5
+# print(rgb.shape)
+# print(image.shape)
 display_polys(image, imageId, Class)
