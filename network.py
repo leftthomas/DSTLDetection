@@ -5,7 +5,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 from sklearn.metrics import jaccard_similarity_score
 
-N_Cls = 10
+class_number = 10
 ISZ = 160
 smooth = 1e-12
 # Theano dimension ordering in this code
@@ -49,7 +49,7 @@ def get_unet():
     conv9 = Conv2D(32, (3, 3), activation="relu", padding="same")(up9)
     conv9 = Conv2D(32, (3, 3), activation="relu", padding="same")(conv9)
 
-    conv10 = Conv2D(N_Cls, (1, 1), activation="sigmoid")(conv9)
+    conv10 = Conv2D(class_number, (1, 1), activation="sigmoid")(conv9)
 
     model = Model(inputs=inputs, outputs=conv10)
     model.compile(optimizer=Adam(), loss='binary_crossentropy', metrics=[jaccard_coef, jaccard_coef_int, 'accuracy'])
@@ -75,14 +75,14 @@ def jaccard_coef_int(y_true, y_pred):
 
 
 def calc_jacc(model):
-    img = np.load('data/x_tmp_%d.npy' % N_Cls)
-    msk = np.load('data/y_tmp_%d.npy' % N_Cls)
+    img = np.load('data/x_tmp_%d.npy' % class_number)
+    msk = np.load('data/y_tmp_%d.npy' % class_number)
 
     prd = model.predict(img, batch_size=4)
     print(prd.shape, msk.shape)
     avg, trs = [], []
 
-    for i in range(N_Cls):
+    for i in range(class_number):
         t_msk = msk[:, i, :, :]
         t_prd = prd[:, i, :, :]
         t_msk = t_msk.reshape(msk.shape[0] * msk.shape[2], msk.shape[3])

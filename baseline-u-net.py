@@ -12,7 +12,7 @@ from image_utils import stretch_n, M
 from mask_utils import get_scales, polygons_to_mask, mask_to_polygons, generate_mask_for_image_and_class
 from network import get_unet, calc_jacc
 
-N_Cls = 10
+class_number = 10
 DF = pd.read_csv('../data/train_wkt_v4.csv')
 GS = pd.read_csv('../data/grid_sizes.csv', names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
 SB = pd.read_csv(os.path.join('../data', 'sample_submission.csv'))
@@ -24,7 +24,7 @@ def stick_all_train():
     s = 835
 
     x = np.zeros((5 * s, 5 * s, 8))
-    y = np.zeros((5 * s, 5 * s, N_Cls))
+    y = np.zeros((5 * s, 5 * s, class_number))
 
     ids = sorted(DF.ImageId.unique())
     print(len(ids))
@@ -34,16 +34,16 @@ def stick_all_train():
 
             img = M(id)
             img = stretch_n(img)
-            print(img.shape, id, np.amax(img), np.amin(img))
+            print(img.shape, id)
             x[s * i:s * i + s, s * j:s * j + s, :] = img[:s, :s, :]
-            for z in range(N_Cls):
+            for z in range(class_number):
                 y[s * i:s * i + s, s * j:s * j + s, z] = generate_mask_for_image_and_class(
                     (img.shape[0], img.shape[1]), id, z + 1)[:s, :s]
 
     print(np.amax(y), np.amin(y))
 
-    np.save('data/x_trn_%d' % N_Cls, x)
-    np.save('data/y_trn_%d' % N_Cls, y)
+    np.save('data/x_trn_%d' % class_number, x)
+    np.save('data/y_trn_%d' % class_number, y)
 
 
 def get_patches(img, msk, amt=10000, aug=True):
@@ -60,7 +60,7 @@ def get_patches(img, msk, amt=10000, aug=True):
         im = img[xc:xc + is2, yc:yc + is2]
         ms = msk[xc:xc + is2, yc:yc + is2]
 
-        for j in range(N_Cls):
+        for j in range(class_number):
             sm = np.sum(ms[:, :, j])
             if 1.0 * sm / is2 ** 2 > tr[j]:
                 if aug:
@@ -75,25 +75,25 @@ def get_patches(img, msk, amt=10000, aug=True):
                 y.append(ms)
 
     x, y = 2 * np.transpose(x, (0, 3, 1, 2)) - 1, np.transpose(y, (0, 3, 1, 2))
-    print(x.shape, y.shape, np.amax(x), np.amin(x), np.amax(y), np.amin(y))
+    print(x.shape, y.shape)
     return x, y
 
 
 def make_val():
     print("let's pick some samples for validation")
-    img = np.load('data/x_trn_%d.npy' % N_Cls)
-    msk = np.load('data/y_trn_%d.npy' % N_Cls)
+    img = np.load('data/x_trn_%d.npy' % class_number)
+    msk = np.load('data/y_trn_%d.npy' % class_number)
     x, y = get_patches(img, msk, amt=3000)
 
-    np.save('data/x_tmp_%d' % N_Cls, x)
-    np.save('data/y_tmp_%d' % N_Cls, y)
+    np.save('data/x_tmp_%d' % class_number, x)
+    np.save('data/y_tmp_%d' % class_number, y)
 
 
 def train_net():
     print("start train net")
-    x_val, y_val = np.load('data/x_tmp_%d.npy' % N_Cls), np.load('data/y_tmp_%d.npy' % N_Cls)
-    img = np.load('data/x_trn_%d.npy' % N_Cls)
-    msk = np.load('data/y_trn_%d.npy' % N_Cls)
+    x_val, y_val = np.load('data/x_tmp_%d.npy' % class_number), np.load('data/y_tmp_%d.npy' % class_number)
+    img = np.load('data/x_trn_%d.npy' % class_number)
+    msk = np.load('data/y_trn_%d.npy' % class_number)
 
     x_trn, y_trn = get_patches(img, msk)
 
@@ -118,7 +118,7 @@ def predict_id(id, model, trs):
     x = stretch_n(img)
 
     cnv = np.zeros((960, 960, 8)).astype(np.float32)
-    prd = np.zeros((N_Cls, 960, 960)).astype(np.float32)
+    prd = np.zeros((class_number, 960, 960)).astype(np.float32)
     cnv[:img.shape[0], :img.shape[1], :] = x
 
     for i in range(0, 6):
@@ -132,7 +132,7 @@ def predict_id(id, model, trs):
             prd[:, i * ISZ:(i + 1) * ISZ, j * ISZ:(j + 1) * ISZ] = tmp[j]
 
     # trs = [0.4, 0.1, 0.4, 0.3, 0.3, 0.5, 0.3, 0.6, 0.1, 0.1]
-    for i in range(N_Cls):
+    for i in range(class_number):
         prd[i] = prd[i] > trs[i]
 
     return prd[:, :img.shape[0], :img.shape[1]]
