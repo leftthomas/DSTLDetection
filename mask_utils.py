@@ -2,14 +2,11 @@ from collections import defaultdict
 
 import cv2
 import numpy as np
-import pandas as pd
 from matplotlib import pyplot as plt
-from shapely import wkt, affinity
+from shapely import affinity
 from shapely.geometry import MultiPolygon, Polygon
 
-from file_utils import get_xmax_ymin
-
-DF = pd.read_csv('../data/train_wkt_v4.csv')
+from file_utils import get_xmax_ymin, load_wkt_to_polygons
 
 
 # Scale polygons to match image
@@ -89,16 +86,6 @@ def convert_coordinates_to_raster(coords, img_size, xymax):
     return coords_int
 
 
-def get_polygon_list(wkt_list_pandas, imageId, cType):
-    df_image = wkt_list_pandas[wkt_list_pandas.ImageId == imageId]
-    multipoly_def = df_image[df_image.ClassType == cType].MultipolygonWKT
-    polygonList = None
-    if len(multipoly_def) > 0:
-        assert len(multipoly_def) == 1
-        polygonList = wkt.loads(multipoly_def.values[0])
-    return polygonList
-
-
 def get_and_convert_contours(polygonList, raster_img_size, xymax):
     perim_list = []
     interior_list = []
@@ -126,16 +113,16 @@ def plot_mask_from_contours(raster_img_size, contours, class_value=1):
     return img_mask
 
 
-def generate_mask_for_image_and_class(raster_size, imageId, class_type, wkt_list_pandas=DF):
+def generate_mask_for_image_and_class(raster_size, imageId, class_type):
     xymax = get_xmax_ymin(imageId)
-    polygon_list = get_polygon_list(wkt_list_pandas, imageId, class_type)
+    polygon_list = load_wkt_to_polygons(imageId, class_type)
     contours = get_and_convert_contours(polygon_list, raster_size, xymax)
     mask = plot_mask_from_contours(raster_size, contours, 1)
     return mask
 
 
 def display_polys(img, image_id, Class):
-    polys = get_polygon_list(DF, image_id, Class)
+    polys = load_wkt_to_polygons(image_id, Class)
     H = len(img)
     W = len(img[0])
     x_max, y_min = get_xmax_ymin(image_id)

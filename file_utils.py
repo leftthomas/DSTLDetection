@@ -1,7 +1,8 @@
 import json
 
 import pandas as pd
-from shapely.geometry import Polygon
+from shapely import wkt
+from shapely.geometry import Polygon, MultiPolygon
 
 classType_to_filename = {
     1: '006_VEG_L2_SCRUBLAND',  # 灌木丛
@@ -24,9 +25,25 @@ def load_geojson_to_polygons(img_id, class_type):
         # print(Polygon(feature['geometry']['coordinates'][0]))
         polygon_list.append(Polygon(feature['geometry']['coordinates'][0]))
     # print(polygon_list)
-    return polygon_list
+    # print(type(MultiPolygon(polygon_list)))
+    return MultiPolygon(polygon_list)
 
 # load_geojson_to_polygons('6100_2_2', 6)
+
+
+# 读取指定的img对应的class的csv文件的polygons,注意这里的class与geojson文件的class不同
+def load_wkt_to_polygons(img_id, class_type):
+    df = pd.read_csv('../data/train_wkt_v4.csv')
+    df_image = df[df.ImageId == img_id]
+    polygons = df_image[df_image.ClassType == class_type].MultipolygonWKT
+    polygon_list = None
+    if len(polygons) > 0:
+        polygon_list = wkt.loads(polygons.values[0])
+    # print(polygon_list)
+    return polygon_list
+
+
+# load_wkt_to_polygons('6100_2_2', 6)
 
 
 # 从grid_sizes.csv中读取指定图像的 Xmax 和 Ymin

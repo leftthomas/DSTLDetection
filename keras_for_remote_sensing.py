@@ -9,6 +9,7 @@ from keras.models import Sequential
 from shapely import wkt
 from sklearn.model_selection import train_test_split
 
+from file_utils import get_xmax_ymin
 from image_utils import M
 from mask_utils import mask_for_polygons, get_scalers
 
@@ -26,7 +27,7 @@ for _im_id, _poly_type, _poly in csv.reader(open('../data/train_wkt_v4.csv')):
 # Read image
 im_rgb = M(IM_ID)
 im_size = im_rgb.shape[:2]
-
+x_max, y_min = get_xmax_ymin(IM_ID)
 
 mask_map = list()
 for key in train_polygons.keys():
