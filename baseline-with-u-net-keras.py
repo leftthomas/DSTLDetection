@@ -9,7 +9,7 @@ import shapely.wkt
 from keras.callbacks import ModelCheckpoint
 
 from image_utils import stretch_n, M
-from mask_utils import get_scales, mask_for_polygons, mask_to_polygons, generate_mask_for_image_and_class
+from mask_utils import get_scales, polygons_to_mask, mask_to_polygons, generate_mask_for_image_and_class
 from network import get_unet, calc_jacc
 
 N_Cls = 10
@@ -186,7 +186,7 @@ def check_predict(id='6120_2_3'):
     ax2.imshow(msk[0], cmap=plt.get_cmap('gray'))
     ax3 = plt.subplot(133)
     ax3.set_title('predict bldg polygones')
-    ax3.imshow(mask_for_polygons(mask_to_polygons(msk[0], epsilon=1), img.shape[:2]), cmap=plt.get_cmap('gray'))
+    ax3.imshow(polygons_to_mask(mask_to_polygons(msk[0], epsilon=1), img.shape[:2]), cmap=plt.get_cmap('gray'))
 
     plt.show()
 

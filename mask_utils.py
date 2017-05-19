@@ -6,24 +6,28 @@ from matplotlib import pyplot as plt
 from shapely import affinity
 from shapely.geometry import MultiPolygon, Polygon
 
-from file_utils import get_xmax_ymin, load_wkt_to_polygons, get_scales
+from file_utils import get_xmax_ymin, load_geojson_to_polygons, get_scales
 
 
-# Create a mask from polygons
-def mask_for_polygons(polygons, im_size):
+# 将polygons转化成mask,注意,已经转化过的polygons不需要再做转化了
+def polygons_to_mask(polygons, im_size, has_transformed=True, x_scale=0, y_scale=0):
+    if not has_transformed:
+        polygons = affinity.scale(polygons, xfact=x_scale, yfact=y_scale, origin=(0, 0, 0))
     img_mask = np.zeros(im_size, np.uint8)
-    if not polygons:
+    if polygons is None:
         return img_mask
-    int_coords = lambda x: np.array(x).round().astype(np.int32)
-    exteriors = [int_coords(poly.exterior.coords) for poly in polygons]
-    interiors = [int_coords(pi.coords) for poly in polygons
+    coords = lambda x: np.array(x).round().astype(np.int32)
+    exteriors = [coords(poly.exterior.coords) for poly in polygons]
+    # print(exteriors[0])
+    interiors = [coords(pi.coords) for poly in polygons
                  for pi in poly.interiors]
+    # print(interiors)
     cv2.fillPoly(img_mask, exteriors, 1)
     cv2.fillPoly(img_mask, interiors, 0)
     return img_mask
 
 
-# Creating polygons from bit masks
+# 将mask转化到polygons
 def mask_to_polygons(mask, epsilon=5, min_area=1):
     # first, find contours with cv2: it's much faster than shapely
     image, contours, hierarchy = cv2.findContours(
@@ -64,70 +68,22 @@ def mask_to_polygons(mask, epsilon=5, min_area=1):
     return all_polygons
 
 
-def convert_coordinates_to_raster(coords, img_size, xymax):
-    Xmax, Ymax = xymax
-    H, W = img_size
-    W1 = 1.0 * W * W / (W + 1)
-    H1 = 1.0 * H * H / (H + 1)
-    xf = W1 / Xmax
-    yf = H1 / Ymax
-    coords[:, 1] *= yf
-    coords[:, 0] *= xf
-    coords_int = np.round(coords).astype(np.int32)
-    return coords_int
-
-
-def get_and_convert_contours(polygonList, raster_img_size, xymax):
-    perim_list = []
-    interior_list = []
-    if polygonList is None:
-        return None
-    for k in range(len(polygonList)):
-        poly = polygonList[k]
-        perim = np.array(list(poly.exterior.coords))
-        perim_c = convert_coordinates_to_raster(perim, raster_img_size, xymax)
-        perim_list.append(perim_c)
-        for pi in poly.interiors:
-            interior = np.array(list(pi.coords))
-            interior_c = convert_coordinates_to_raster(interior, raster_img_size, xymax)
-            interior_list.append(interior_c)
-    return perim_list, interior_list
-
-
-def plot_mask_from_contours(raster_img_size, contours, class_value=1):
-    img_mask = np.zeros(raster_img_size, np.uint8)
-    if contours is None:
-        return img_mask
-    perim_list, interior_list = contours
-    cv2.fillPoly(img_mask, perim_list, class_value)
-    cv2.fillPoly(img_mask, interior_list, 0)
-    return img_mask
-
-
-def generate_mask_for_image_and_class(raster_size, imageId, class_type):
-    xymax = get_xmax_ymin(imageId)
-    polygon_list = load_wkt_to_polygons(imageId, class_type)
-    contours = get_and_convert_contours(polygon_list, raster_size, xymax)
-    mask = plot_mask_from_contours(raster_size, contours, 1)
+def generate_mask_for_image_and_class(raster_size, image_id, class_type):
+    x_max, y_min = get_xmax_ymin(image_id)
+    xf, yf = get_scales(raster_size, x_max, y_min)
+    polygon_list = load_geojson_to_polygons(image_id, class_type)
+    mask = polygons_to_mask(polygon_list, raster_size, False, xf, yf)
     return mask
 
 
-def display_polys(img, image_id, Class):
-    polys = load_wkt_to_polygons(image_id, Class)
-    H = img.shape[0]
-    W = img.shape[1]
-    print('h:', H)
-    print('w:', W)
-    x_max, y_min = get_xmax_ymin(image_id)
-    x_scale, y_scale = get_scales((H, W), x_max, y_min)
-    polys = affinity.scale(polys, xfact=x_scale, yfact=y_scale, origin=(0, 0, 0))
+def display_polygons(polygons, img, x_scale, y_scale):
+    polygons = affinity.scale(polygons, xfact=x_scale, yfact=y_scale, origin=(0, 0, 0))
     vertices = lambda x: np.array(x).round().astype(np.int32)
-    for poly_id, poly in enumerate(polys):
+    for poly_id, poly in enumerate(polygons):
         xys = vertices(poly.exterior.coords)
-        cv2.polylines(img, [xys], True, (255, 0, 0), 7)
+        cv2.polylines(img, [xys], True, (255, 0, 0), 2)
         for pi in poly.interiors:
-            ixys = vertices(pi.coords)
-            cv2.polylines(img, [ixys], True, (255, 0, 0), 7)
-    # Plot
+            i_xys = vertices(pi.coords)
+            cv2.polylines(img, [i_xys], True, (0, 255, 0), 2)
     plt.imshow(img)
     plt.show()
