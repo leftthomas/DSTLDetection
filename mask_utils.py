@@ -7,8 +7,9 @@ from matplotlib import pyplot as plt
 from shapely import wkt, affinity
 from shapely.geometry import MultiPolygon, Polygon
 
+from file_utils import get_xmax_ymin
+
 DF = pd.read_csv('../data/train_wkt_v4.csv')
-GS = pd.read_csv('../data/grid_sizes.csv', names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
 
 
 # Scale polygons to match image
@@ -88,11 +89,6 @@ def convert_coordinates_to_raster(coords, img_size, xymax):
     return coords_int
 
 
-def get_xmax_ymin(grid_sizes_panda, imageId):
-    xmax, ymin = grid_sizes_panda[grid_sizes_panda.ImageId == imageId].iloc[0, 1:].astype(float)
-    return xmax, ymin
-
-
 def get_polygon_list(wkt_list_pandas, imageId, cType):
     df_image = wkt_list_pandas[wkt_list_pandas.ImageId == imageId]
     multipoly_def = df_image[df_image.ClassType == cType].MultipolygonWKT
@@ -130,8 +126,8 @@ def plot_mask_from_contours(raster_img_size, contours, class_value=1):
     return img_mask
 
 
-def generate_mask_for_image_and_class(raster_size, imageId, class_type, grid_sizes_panda=GS, wkt_list_pandas=DF):
-    xymax = get_xmax_ymin(grid_sizes_panda, imageId)
+def generate_mask_for_image_and_class(raster_size, imageId, class_type, wkt_list_pandas=DF):
+    xymax = get_xmax_ymin(imageId)
     polygon_list = get_polygon_list(wkt_list_pandas, imageId, class_type)
     contours = get_and_convert_contours(polygon_list, raster_size, xymax)
     mask = plot_mask_from_contours(raster_size, contours, 1)
@@ -142,7 +138,7 @@ def display_polys(img, image_id, Class):
     polys = get_polygon_list(DF, image_id, Class)
     H = len(img)
     W = len(img[0])
-    x_max, y_min = get_xmax_ymin(GS, image_id)
+    x_max, y_min = get_xmax_ymin(image_id)
     x_scale, y_scale = get_scalers((H, W), x_max, y_min)
     polys = affinity.scale(polys, xfact=x_scale, yfact=y_scale, origin=(0, 0, 0))
     vertices = lambda x: np.array(x).round().astype(np.int32)

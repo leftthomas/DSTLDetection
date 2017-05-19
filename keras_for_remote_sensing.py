@@ -1,5 +1,4 @@
 import csv
-import sys
 
 import numpy as np
 import shapely.affinity
@@ -13,17 +12,9 @@ from sklearn.model_selection import train_test_split
 from image_utils import M
 from mask_utils import mask_for_polygons, get_scalers
 
-csv.field_size_limit(sys.maxsize)
-
 IM_ID = '6100_2_2'
 POLY_TYPE = '5'  # Trees
 
-# Load grid size
-x_max = y_min = None
-for _im_id, _x, _y in csv.reader(open('../data/grid_sizes.csv')):
-    if _im_id == IM_ID:
-        x_max, y_min = float(_x), float(_y)
-        break
 
 # Load train poly with shapely
 train_polygons = dict()

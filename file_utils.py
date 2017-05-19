@@ -1,5 +1,6 @@
 import json
 
+import pandas as pd
 from shapely.geometry import Polygon
 
 classType_to_filename = {
@@ -26,3 +27,10 @@ def load_geojson_to_polygons(img_id, class_type):
     return polygon_list
 
 # load_geojson_to_polygons('6100_2_2', 6)
+
+
+# 从grid_sizes.csv中读取指定图像的 Xmax 和 Ymin
+def get_xmax_ymin(image_id):
+    gs = pd.read_csv('../data/grid_sizes.csv', names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
+    xmax, ymin = gs[gs.ImageId == image_id].iloc[0, 1:].astype(float)
+    return xmax, ymin
