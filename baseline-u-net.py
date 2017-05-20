@@ -134,7 +134,7 @@ def predict_id(id, model, trs):
     return prd[:, :img.shape[0], :img.shape[1]]
 
 
-def check_predict(id='6120_2_3'):
+def check_predict(id='6100_3_2'):
     model = get_unet()
     model.load_weights('weights/unet_10_jk0.7878')
 
@@ -143,13 +143,13 @@ def check_predict(id='6120_2_3'):
 
     plt.figure()
     ax1 = plt.subplot(131)
-    ax1.set_title('image ID:6120_2_3')
+    ax1.set_title('image ID:6100_3_2')
     ax1.imshow(img[:, :, 5], cmap=plt.get_cmap('gist_ncar'))
     ax2 = plt.subplot(132)
     ax2.set_title('predict bldg pixels')
     ax2.imshow(msk[0], cmap=plt.get_cmap('gray'))
     ax3 = plt.subplot(133)
-    ax3.set_title('predict bldg polygones')
+    ax3.set_title('predict bldg polygons')
     ax3.imshow(polygons_to_mask(mask_to_polygons(msk[0], epsilon=1), img.shape[:2]), cmap=plt.get_cmap('gray'))
 
     plt.show()
