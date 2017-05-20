@@ -1,4 +1,3 @@
-import os
 import random
 
 import matplotlib.pyplot as plt
@@ -13,7 +12,6 @@ from network import get_unet, calc_jacc
 class_number = 10
 DF = pd.read_csv('../data/train_wkt_v4.csv')
 GS = pd.read_csv('../data/grid_sizes.csv', names=['ImageId', 'Xmax', 'Ymin'], skiprows=1)
-SB = pd.read_csv(os.path.join('../data', 'sample_submission.csv'))
 ISZ = 160
 
 
@@ -136,14 +134,6 @@ def predict_id(id, model, trs):
     return prd[:, :img.shape[0], :img.shape[1]]
 
 
-def predict_test(model, trs):
-    print("predict test")
-    for i, id in enumerate(sorted(set(SB['ImageId'].tolist()))):
-        msk = predict_id(id, model, trs)
-        np.save('msk/10_%s' % id, msk)
-        if i % 100 == 0: print(i, id)
-
-
 def check_predict(id='6120_2_3'):
     model = get_unet()
     model.load_weights('weights/unet_10_jk0.7878')
@@ -169,6 +159,5 @@ stick_all_train()
 make_val()
 model = train_net()
 score, trs = calc_jacc(model)
-predict_test(model, trs)
 # bonus
 check_predict()
