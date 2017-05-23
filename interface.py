@@ -1,3 +1,4 @@
+import tkinter.messagebox as messagebox
 from tkinter import *
 
 
@@ -8,11 +9,14 @@ class Application(Frame):
         self.createWidgets()
 
     def createWidgets(self):
-        self.helloLabel = Label(self, text='Hello, world!')
-        self.helloLabel.pack()
-        self.quitButton = Button(self, text='Quit', command=self.quit)
-        self.quitButton.pack()
+        self.nameInput = Entry(self)
+        self.nameInput.pack()
+        self.alertButton = Button(self, text='Hello', command=self.hello)
+        self.alertButton.pack()
 
+    def hello(self):
+        name = self.nameInput.get() or 'world'
+        messagebox.showinfo('Message', 'Hello, %s' % name)
 
 app = Application()
 # 设置窗口标题:
