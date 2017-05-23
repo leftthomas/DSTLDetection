@@ -155,9 +155,9 @@ def check_predict(id='6100_3_2'):
     plt.show()
 
 
-stick_all_train()
-make_val()
-model = train_net()
-score, trs = calc_jacc(model)
+# stick_all_train()
+# make_val()
+# model = train_net()
+# score, trs = calc_jacc(model)
 # bonus
 check_predict()
