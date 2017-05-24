@@ -1,6 +1,7 @@
 import tkinter.messagebox as messagebox
 from tkinter import *
 
+from baseline import check_predict
 from file_utils import *
 from image_utils import *
 from mask_utils import *
@@ -40,6 +41,20 @@ class Application(Frame):
         self.image_class.grid(row=9, column=1)
         Button(self, text='显示多边形区域', command=self.show_polygons).grid(row=10, column=0)
         Button(self, text='显示mask', command=self.show_mask).grid(row=10, column=1)
+
+        Label(self, text="----------------------------------神经网络训练----------------------------------").grid(row=11,
+                                                                                                            column=0,
+                                                                                                            columnspan=2)
+        Button(self, text='神经网络训练说明', command=self.show_net_info).grid(row=12, column=0)
+        Button(self, text='开始训练', command=self.train_net).grid(row=12, column=1)
+
+        Label(self, text="----------------------------------结果验证----------------------------------").grid(row=13,
+                                                                                                          column=0,
+                                                                                                          columnspan=2)
+        Label(self, text="待预测遥感图像ID，默认为6100_3_2：").grid(row=14, column=0)
+        self.image_target = Entry(self)
+        self.image_target.grid(row=14, column=1)
+        Button(self, text='生成预测的各类别mask', command=self.predict).grid(row=15, column=0, columnspan=2)
 
     def show_info(self):
         messagebox.showinfo('遥感数据集说明', '原始遥感图像数据集分为两种，一种是3波段的RGB图像，另一种是16'
@@ -159,6 +174,24 @@ class Application(Frame):
                 messagebox.showinfo('提示', '输入植被种类有误')
         except:
             messagebox.showinfo('提示', '输入图像ID有误')
+
+    def show_net_info(self):
+        messagebox.showinfo('神经网络训练说明', '采用的神经网络结构为U-Net，在预训练的权值基础上进行'
+                                        'fine-tuning，batch_size设为64，epochs设为1，optimizer'
+                                        '设为Adam，损失函数设为binary_crossentropy。')
+
+    def train_net(self):
+        print('train')
+        # stick_all_train()
+        # model = train_net()
+
+    def predict(self):
+        img_target = self.image_target.get() or '6100_3_2'
+        try:
+            check_predict(img_target)
+        except:
+            messagebox.showinfo('提示', '输入图像ID有误')
+
 
 app = Application()
 # 设置窗口标题:

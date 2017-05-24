@@ -163,4 +163,4 @@ def check_predict(id='6100_3_2'):
 # model = train_net()
 # score, trs = calc_jacc(model)
 # bonus
-check_predict()
+# check_predict()
