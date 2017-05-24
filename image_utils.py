@@ -1,5 +1,9 @@
 import os
 
+# 解决matplotlib与tkinter冲突的问题
+import matplotlib
+
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import numpy as np
 import tifffile as tiff

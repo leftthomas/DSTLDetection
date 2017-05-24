@@ -1,7 +1,10 @@
 from collections import defaultdict
 
 import cv2
+import matplotlib
 import numpy as np
+
+matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 from shapely import affinity
 from shapely.geometry import MultiPolygon, Polygon
