@@ -34,12 +34,12 @@ polygons_csv = load_wkt_to_polygons(imageId, class_type)
 x_max, y_min = get_xmax_ymin(imageId)
 # 测试得到polygons地理坐标到像素坐标点映射的缩放因子
 x_scale, y_scale = get_scales((image.shape[0], image.shape[1]), x_max, y_min)
-# 测试将polygons转化成mask
-mask = polygons_to_mask(polygons_geojson, (image.shape[0], image.shape[1]), False, x_scale, y_scale)
-# 测试polys的绘制
+# 测试polys的绘制(geojson)
 display_polygons(polygons_geojson, image, x_scale, y_scale)
+# 测试将polygons转化成mask(geojson)
+mask = polygons_to_mask(polygons_geojson, (image.shape[0], image.shape[1]), False, x_scale, y_scale)
 # 测试mask的绘制
 display_img(mask)
-# 显示所有mask
+# 显示所有mask(geojson)
 masks = load_all_masks(load_all_geojson(imageId), (image.shape[0], image.shape[1]), x_scale, y_scale)
 display_all_mask(masks)
