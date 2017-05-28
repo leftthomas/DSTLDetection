@@ -103,3 +103,7 @@ def calc_jacc(model):
 
     score = sum(avg) / 10.0
     return score, trs
+
+
+
+    # plot_model(get_unet(), to_file='model.png', show_shapes=True, show_layer_names=False)
