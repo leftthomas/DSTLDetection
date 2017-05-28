@@ -14,6 +14,7 @@ K.set_image_dim_ordering('th')
 
 def get_unet():
     inputs = Input((8, ISZ, ISZ))
+
     conv1 = Conv2D(32, (3, 3), activation="relu", padding="same")(inputs)
     conv1 = Conv2D(32, (3, 3), activation="relu", padding="same")(conv1)
     pool1 = MaxPool2D(pool_size=(2, 2))(conv1)
@@ -105,5 +106,5 @@ def calc_jacc(model):
     return score, trs
 
 
-
-    # plot_model(get_unet(), to_file='model.png', show_shapes=True, show_layer_names=False)
+# plot_model(get_unet(), to_file='model.png', show_shapes=True, show_layer_names=False)
+print(get_unet().summary())
