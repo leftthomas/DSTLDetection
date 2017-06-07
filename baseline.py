@@ -19,27 +19,28 @@ ISZ = 160
 
 
 def stick_all_train():
-    print("let's stick all imgs together")
+    print("构造训练集")
+    # 因为M段图有些图尺寸不一样，这里统一取835*835，基本上都是849*837，接近1：1
     s = 835
 
     x = np.zeros((5 * s, 5 * s, 8))
     y = np.zeros((5 * s, 5 * s, class_number))
 
     ids = sorted(DF.ImageId.unique())
-    print(len(ids))
+    # print('训练集遥感图像总张数：',len(ids))
     for i in range(5):
         for j in range(5):
             id = ids[5 * i + j]
 
             img = M(id)
             img = stretch_n(img)
-            print(img.shape, id)
+            print(id, ':', img.shape)
             x[s * i:s * i + s, s * j:s * j + s, :] = img[:s, :s, :]
             for z in range(class_number):
                 y[s * i:s * i + s, s * j:s * j + s, z] = generate_mask_for_image_and_class(
                     (img.shape[0], img.shape[1]), id, z + 1)[:s, :s]
-
-    print(np.amax(y), np.amin(y))
+    # 看下mask有没有做错，数据是不是为[0,1]
+    # print(np.amax(y), np.amin(y))
 
     np.save('data/x_trn_%d' % class_number, x)
     np.save('data/y_trn_%d' % class_number, y)
@@ -79,7 +80,7 @@ def get_patches(img, msk, amt=10000, aug=True):
 
 
 def make_val():
-    print("let's pick some samples for validation")
+    print("构造验证集")
     img = np.load('data/x_trn_%d.npy' % class_number)
     msk = np.load('data/y_trn_%d.npy' % class_number)
     x, y = get_patches(img, msk, amt=3000)
@@ -158,7 +159,7 @@ def check_predict(id='6100_3_2'):
     plt.show()
 
 
-# stick_all_train()
+stick_all_train()
 # make_val()
 # model = train_net()
 # score, trs = calc_jacc(model)
