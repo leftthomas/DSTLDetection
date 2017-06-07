@@ -20,7 +20,7 @@ ISZ = 160
 
 def stick_all_train():
     print("构造训练集，保存至本地")
-    # 因为M段图有些图尺寸不一样，这里统一取835*835，基本上都是849*837，接近1：1
+    # 因为M段图有些图尺寸不一样，这里统一取835*835，基本上都是837*849，接近1：1
     s = 835
 
     x = np.zeros((5 * s, 5 * s, 8))
@@ -85,29 +85,24 @@ def make_val():
     msk = np.load('data/y_trn_%d.npy' % class_number)
     x, y = get_patches(img, msk, amt=3000)
 
-    # np.save('data/x_tmp_%d' % class_number, x)
-    # np.save('data/y_tmp_%d' % class_number, y)
+    np.save('data/x_tmp_%d' % class_number, x)
+    np.save('data/y_tmp_%d' % class_number, y)
 
 
 def train_net():
     print("start train net")
     x_val, y_val = np.load('data/x_tmp_%d.npy' % class_number), np.load('data/y_tmp_%d.npy' % class_number)
     img, msk = np.load('data/x_trn_%d.npy' % class_number), np.load('data/y_trn_%d.npy' % class_number)
-
     x_trn, y_trn = get_patches(img, msk)
 
     model = get_unet()
     model.load_weights('weights/unet_10_jk0.7878')
     model_checkpoint = ModelCheckpoint('weights/unet_tmp.hdf5', monitor='loss', save_best_only=True)
-    for i in range(1):
-        model.fit(x_trn, y_trn, batch_size=64, epochs=1, verbose=1, shuffle=True,
-                  callbacks=[model_checkpoint], validation_data=(x_val, y_val))
-        del x_trn
-        del y_trn
-        x_trn, y_trn = get_patches(img, msk)
-        score, trs = calc_jacc(model)
-        print('val jk', score)
-        model.save_weights('weights/unet_10_jk%.4f' % score)
+    model.fit(x_trn, y_trn, batch_size=64, epochs=1, verbose=1, shuffle=True,
+              callbacks=[model_checkpoint], validation_data=(x_val, y_val))
+    score, trs = calc_jacc(model)
+    print('val jk', score)
+    model.save_weights('weights/unet_10_jk%.4f' % score)
 
     return model
 
@@ -159,7 +154,7 @@ def check_predict(id='6100_3_2'):
 
 
 # stick_all_train()
-make_val()
+# make_val()
 # model = train_net()
 # score, trs = calc_jacc(model)
 # bonus
