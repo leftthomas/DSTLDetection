@@ -183,7 +183,7 @@ class Application(Frame):
     def train_net(self):
         print('train')
         stick_all_train()
-        model = train_net()
+        train_net()
 
     def predict(self):
         img_target = self.image_target.get() or '6100_3_2'
