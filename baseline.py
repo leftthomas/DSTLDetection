@@ -51,7 +51,7 @@ def get_patches(img, msk, amt=10000, aug=True):
     xm, ym = img.shape[0] - ISZ, img.shape[1] - ISZ
 
     x, y = [], []
-
+    # 每一类的阈值
     tr = [0.4, 0.1, 0.1, 0.15, 0.3, 0.95, 0.1, 0.05, 0.001, 0.005]
     for i in range(amt):
         xc = random.randint(0, xm)
@@ -63,19 +63,23 @@ def get_patches(img, msk, amt=10000, aug=True):
         for j in range(class_number):
             sm = np.sum(ms[:, :, j])
             if sm / ISZ ** 2 > tr[j]:
+                # 做一些变换
                 if aug:
                     if random.uniform(0, 1) > 0.5:
+                        # 垂直翻转
                         im = im[::-1]
                         ms = ms[::-1]
                     if random.uniform(0, 1) > 0.5:
+                        # 水平翻转
                         im = im[:, ::-1]
                         ms = ms[:, ::-1]
 
                 x.append(im)
                 y.append(ms)
-
+    # x需要转换到[-1, 1]区间，归一化，方便计算，同时需要转置，即将(n,160,160,8)变为(n,8,160,160)
+    # (0, 3, 1, 2)即根据原shape索引(n[0],8[3],160[1],160[2])转变shape
     x, y = 2 * np.transpose(x, (0, 3, 1, 2)) - 1, np.transpose(y, (0, 3, 1, 2))
-    print(x.shape, y.shape)
+    # print(x.shape, y.shape)
     return x, y
 
 
@@ -97,6 +101,7 @@ def train_net():
 
     model = get_unet()
     model.load_weights('weights/unet_10_jk0.7878')
+    # 回调函数，在epoch结束后保存在验证集上性能最好的模型
     model_checkpoint = ModelCheckpoint('weights/unet_tmp.hdf5', monitor='loss', save_best_only=True)
     model.fit(x_trn, y_trn, batch_size=64, epochs=1, verbose=1, shuffle=True,
               callbacks=[model_checkpoint], validation_data=(x_val, y_val))

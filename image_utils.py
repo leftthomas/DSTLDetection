@@ -48,6 +48,7 @@ def stretch_n(bands, lower_percent=5, higher_percent=95):
     out = np.zeros_like(bands).astype(np.float32)
     # print(out.dtype)
     for i in range(bands.shape[2]):
+        # 这里直接拉伸到[0,1]之间，不需要先拉伸到[0,255]后面再转
         a = 0  # np.min(band)
         b = 1  # np.max(band)
         # 计算百分位数（从小到大排序之后第 percent% 的数）
