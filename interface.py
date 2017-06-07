@@ -181,7 +181,7 @@ class Application(Frame):
                                         '设为Adam，损失函数设为binary_crossentropy。')
 
     def train_net(self):
-        print('train')
+        # print('train')
         stick_all_train()
         train_net()
 
