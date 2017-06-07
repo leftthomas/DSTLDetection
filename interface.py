@@ -1,7 +1,7 @@
 import tkinter.messagebox as messagebox
 from tkinter import *
 
-from baseline import check_predict
+from baseline import check_predict, stick_all_train, train_net
 from file_utils import *
 from image_utils import *
 from mask_utils import *
@@ -182,8 +182,8 @@ class Application(Frame):
 
     def train_net(self):
         print('train')
-        # stick_all_train()
-        # model = train_net()
+        stick_all_train()
+        model = train_net()
 
     def predict(self):
         img_target = self.image_target.get() or '6100_3_2'
