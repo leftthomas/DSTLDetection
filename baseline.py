@@ -19,7 +19,7 @@ ISZ = 160
 
 
 def stick_all_train():
-    print("构造训练集")
+    print("构造训练集，保存至本地")
     # 因为M段图有些图尺寸不一样，这里统一取835*835，基本上都是849*837，接近1：1
     s = 835
 
@@ -46,9 +46,9 @@ def stick_all_train():
     np.save('data/y_trn_%d' % class_number, y)
 
 
+# 生成patches
 def get_patches(img, msk, amt=10000, aug=True):
-    is2 = int(1.0 * ISZ)
-    xm, ym = img.shape[0] - is2, img.shape[1] - is2
+    xm, ym = img.shape[0] - ISZ, img.shape[1] - ISZ
 
     x, y = [], []
 
@@ -57,12 +57,12 @@ def get_patches(img, msk, amt=10000, aug=True):
         xc = random.randint(0, xm)
         yc = random.randint(0, ym)
 
-        im = img[xc:xc + is2, yc:yc + is2]
-        ms = msk[xc:xc + is2, yc:yc + is2]
+        im = img[xc:xc + ISZ, yc:yc + ISZ]
+        ms = msk[xc:xc + ISZ, yc:yc + ISZ]
 
         for j in range(class_number):
             sm = np.sum(ms[:, :, j])
-            if 1.0 * sm / is2 ** 2 > tr[j]:
+            if sm / ISZ ** 2 > tr[j]:
                 if aug:
                     if random.uniform(0, 1) > 0.5:
                         im = im[::-1]
@@ -85,15 +85,14 @@ def make_val():
     msk = np.load('data/y_trn_%d.npy' % class_number)
     x, y = get_patches(img, msk, amt=3000)
 
-    np.save('data/x_tmp_%d' % class_number, x)
-    np.save('data/y_tmp_%d' % class_number, y)
+    # np.save('data/x_tmp_%d' % class_number, x)
+    # np.save('data/y_tmp_%d' % class_number, y)
 
 
 def train_net():
     print("start train net")
     x_val, y_val = np.load('data/x_tmp_%d.npy' % class_number), np.load('data/y_tmp_%d.npy' % class_number)
-    img = np.load('data/x_trn_%d.npy' % class_number)
-    msk = np.load('data/y_trn_%d.npy' % class_number)
+    img, msk = np.load('data/x_trn_%d.npy' % class_number), np.load('data/y_trn_%d.npy' % class_number)
 
     x_trn, y_trn = get_patches(img, msk)
 
@@ -159,8 +158,8 @@ def check_predict(id='6100_3_2'):
     plt.show()
 
 
-stick_all_train()
-# make_val()
+# stick_all_train()
+make_val()
 # model = train_net()
 # score, trs = calc_jacc(model)
 # bonus
