@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import cv2
 import matplotlib
 import numpy as np
@@ -7,9 +5,8 @@ import numpy as np
 matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 from shapely import affinity
-from shapely.geometry import MultiPolygon, Polygon
-
 from file_utils import get_xmax_ymin, get_scales, load_wkt_to_polygons
+from image_utils import stretch_n
 
 
 # 将polygons转化成mask,注意,已经转化过的polygons不需要再做转化了
@@ -28,47 +25,6 @@ def polygons_to_mask(polygons, im_size, has_transformed=True, x_scale=0, y_scale
     cv2.fillPoly(img_mask, exteriors, 1)
     cv2.fillPoly(img_mask, interiors, 0)
     return img_mask
-
-
-# 将mask转化到polygons
-def mask_to_polygons(mask, epsilon=5, min_area=1):
-    # first, find contours with cv2: it's much faster than shapely
-    image, contours, hierarchy = cv2.findContours(
-        ((mask == 1) * 255).astype(np.uint8),
-        cv2.RETR_CCOMP, cv2.CHAIN_APPROX_TC89_KCOS)
-    # create approximate contours to have reasonable submission size
-    approx_contours = [cv2.approxPolyDP(cnt, epsilon, True)
-                       for cnt in contours]
-    if not contours:
-        return MultiPolygon()
-    # now messy stuff to associate parent and child contours
-    cnt_children = defaultdict(list)
-    child_contours = set()
-    assert hierarchy.shape[0] == 1
-    # http://docs.opencv.org/3.1.0/d9/d8b/tutorial_py_contours_hierarchy.html
-    for idx, (_, _, _, parent_idx) in enumerate(hierarchy[0]):
-        if parent_idx != -1:
-            child_contours.add(idx)
-            cnt_children[parent_idx].append(approx_contours[idx])
-    # create actual polygons filtering by area (removes artifacts)
-    all_polygons = []
-    for idx, cnt in enumerate(approx_contours):
-        if idx not in child_contours and cv2.contourArea(cnt) >= min_area:
-            assert cnt.shape[1] == 1
-            poly = Polygon(
-                shell=cnt[:, 0, :],
-                holes=[c[:, 0, :] for c in cnt_children.get(idx, [])
-                       if cv2.contourArea(c) >= min_area])
-            all_polygons.append(poly)
-    # approximating polygons might have created invalid ones, fix them
-    all_polygons = MultiPolygon(all_polygons)
-    if not all_polygons.is_valid:
-        all_polygons = all_polygons.buffer(0)
-        # Sometimes buffer() converts a simple Multipolygon to just a Polygon,
-        # need to keep it a Multi throughout
-        if all_polygons.type == 'Polygon':
-            all_polygons = MultiPolygon([all_polygons])
-    return all_polygons
 
 
 def generate_mask_for_image_and_class(raster_size, image_id, class_type):
@@ -115,4 +71,76 @@ def display_all_mask(masks):
     ax4.imshow(masks[4])
     ax5 = fig.add_subplot(3, 2, 6)
     ax5.imshow(masks[5])
+    plt.show()
+
+
+def display_predict_result(img, masks):
+    image = np.zeros((img.shape[0], img.shape[1], 3))
+    # 从M段中取出RGB波段组合成图像
+    image[:, :, 0] = img[:, :, 4]  # red
+    image[:, :, 1] = img[:, :, 2]  # green
+    image[:, :, 2] = img[:, :, 1]  # blue
+    stretch_image = stretch_n(image)
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(3, 4, 1)
+    ax1.set_title('Original')
+    ax1.imshow(image)
+    ax1.set_xticks([])
+    ax1.set_yticks([])
+    ax2 = fig.add_subplot(3, 4, 2)
+    ax2.set_title('Stretched')
+    ax2.imshow(stretch_image)
+    ax2.set_xticks([])
+    ax2.set_yticks([])
+    ax3 = fig.add_subplot(3, 4, 3)
+    ax3.set_title('Buildings')
+    ax3.imshow(masks[0])
+    ax3.set_xticks([])
+    ax3.set_yticks([])
+    ax4 = fig.add_subplot(3, 4, 4)
+    ax4.set_title('Misc')
+    ax4.imshow(masks[1])
+    ax4.set_xticks([])
+    ax4.set_yticks([])
+    ax5 = fig.add_subplot(3, 4, 5)
+    ax5.set_title('Road')
+    ax5.imshow(masks[2])
+    ax5.set_xticks([])
+    ax5.set_yticks([])
+    ax6 = fig.add_subplot(3, 4, 6)
+    ax6.set_title('Track')
+    ax6.imshow(masks[3])
+    ax6.set_xticks([])
+    ax6.set_yticks([])
+    ax7 = fig.add_subplot(3, 4, 7)
+    ax7.set_title('Trees')
+    ax7.imshow(masks[4])
+    ax7.set_xticks([])
+    ax7.set_yticks([])
+    ax8 = fig.add_subplot(3, 4, 8)
+    ax8.set_title('Crops')
+    ax8.imshow(masks[5])
+    ax8.set_xticks([])
+    ax8.set_yticks([])
+    ax9 = fig.add_subplot(3, 4, 9)
+    ax9.set_title('Waterway')
+    ax9.imshow(masks[6])
+    ax9.set_xticks([])
+    ax9.set_yticks([])
+    ax10 = fig.add_subplot(3, 4, 10)
+    ax10.set_title('Standing water')
+    ax10.imshow(masks[7])
+    ax10.set_xticks([])
+    ax10.set_yticks([])
+    ax11 = fig.add_subplot(3, 4, 11)
+    ax11.set_title('Vehicle Large')
+    ax11.imshow(masks[8])
+    ax11.set_xticks([])
+    ax11.set_yticks([])
+    ax12 = fig.add_subplot(3, 4, 12)
+    ax12.set_title('Vehicle Small')
+    ax12.imshow(masks[9])
+    ax12.set_xticks([])
+    ax12.set_yticks([])
     plt.show()

@@ -80,25 +80,28 @@ def calc_jacc(model):
     msk = np.load('data/y_tmp_%d.npy' % class_number)
 
     prd = model.predict(img, batch_size=4)
-    print(prd.shape, msk.shape)
+    # print(prd.shape, msk.shape)
     avg, trs = [], []
 
     for i in range(class_number):
         t_msk = msk[:, i, :, :]
         t_prd = prd[:, i, :, :]
+        # 转成二维矩阵才能后续算jaccard相似系数
         t_msk = t_msk.reshape(msk.shape[0] * msk.shape[2], msk.shape[3])
         t_prd = t_prd.reshape(msk.shape[0] * msk.shape[2], msk.shape[3])
 
         m, b_tr = 0, 0
+        # 找到其最好的jaccard系数及其阈值
         for j in range(10):
             tr = j / 10.0
+            # 转成[0,1]的mask
             pred_binary_mask = t_prd > tr
 
             jk = jaccard_similarity_score(t_msk, pred_binary_mask)
             if jk > m:
                 m = jk
                 b_tr = tr
-        print(i, m, b_tr)
+        # print(i, m, b_tr)
         avg.append(m)
         trs.append(b_tr)
 

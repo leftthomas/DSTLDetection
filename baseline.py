@@ -3,13 +3,11 @@ import random
 import matplotlib
 
 matplotlib.use("TkAgg")
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from keras.callbacks import ModelCheckpoint
-
 from image_utils import stretch_n, M
-from mask_utils import polygons_to_mask, mask_to_polygons, generate_mask_for_image_and_class
+from mask_utils import generate_mask_for_image_and_class, display_predict_result
 from network import get_unet, calc_jacc
 
 class_number = 10
@@ -115,7 +113,8 @@ def train_net():
 def predict_id(id, model, trs):
     img = M(id)
     x = stretch_n(img)
-
+    # 因为M段图基本都是（837，848，8）这样的尺寸，但神经网络需要的是(8,160,160)
+    # 所以满足这要求的最小的尺寸就是960(160*6)，刚好分6次
     cnv = np.zeros((960, 960, 8)).astype(np.float32)
     prd = np.zeros((class_number, 960, 960)).astype(np.float32)
     cnv[:img.shape[0], :img.shape[1], :] = x
@@ -123,44 +122,29 @@ def predict_id(id, model, trs):
     for i in range(0, 6):
         line = []
         for j in range(0, 6):
+            # 取(160,160,8)的图像块出来
             line.append(cnv[i * ISZ:(i + 1) * ISZ, j * ISZ:(j + 1) * ISZ])
-
+        # 转换到[-1, 1]区间，归一化，方便计算，同时需要转置，即将(n,160,160,8)变为(n,8,160,160)
         x = 2 * np.transpose(line, (0, 3, 1, 2)) - 1
         tmp = model.predict(x, batch_size=4)
         for j in range(tmp.shape[0]):
             prd[:, i * ISZ:(i + 1) * ISZ, j * ISZ:(j + 1) * ISZ] = tmp[j]
-
-    # trs = [0.4, 0.1, 0.4, 0.3, 0.3, 0.5, 0.3, 0.6, 0.1, 0.1]
+    # 转成[0,1]的mask
     for i in range(class_number):
         prd[i] = prd[i] > trs[i]
-
+    # 记得将图像尺寸转回原尺寸
     return prd[:, :img.shape[0], :img.shape[1]]
 
 
 def check_predict(id='6100_3_2'):
     model = get_unet()
-    model.load_weights('weights/unet_10_jk0.7878')
-
+    model.load_weights('weights/unet_10_jk0.7914')
+    # 这个阈值是calc_jacc时算出来的最佳阈值
     msk = predict_id(id, model, [0.4, 0.1, 0.4, 0.3, 0.3, 0.5, 0.3, 0.6, 0.1, 0.1])
     img = M(id)
-
-    plt.figure()
-    ax1 = plt.subplot(131)
-    ax1.set_title('image ID:6100_3_2')
-    ax1.imshow(img[:, :, 5], cmap=plt.get_cmap('gist_ncar'))
-    ax2 = plt.subplot(132)
-    ax2.set_title('predict bldg pixels')
-    ax2.imshow(msk[0], cmap=plt.get_cmap('gray'))
-    ax3 = plt.subplot(133)
-    ax3.set_title('predict bldg polygons')
-    ax3.imshow(polygons_to_mask(mask_to_polygons(msk[0], epsilon=1), img.shape[:2]), cmap=plt.get_cmap('gray'))
-
-    plt.show()
-
+    display_predict_result(img, msk)
 
 # stick_all_train()
 # make_val()
 # model = train_net()
-# score, trs = calc_jacc(model)
-# bonus
-# check_predict()
+check_predict()
