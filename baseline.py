@@ -147,4 +147,4 @@ def check_predict(id='6100_3_2'):
 # stick_all_train()
 # make_val()
 # model = train_net()
-check_predict()
+# check_predict()
