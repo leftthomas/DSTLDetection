@@ -1,2 +1,2 @@
 # DSTLDetection
-DSTL遥感数据分类
+DSTL remote sensing images detection
